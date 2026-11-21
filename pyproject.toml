@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cekbocor"
+version = "0.1.0"
+description = "Cek apakah kata sandimu pernah bocor — lewat API Have I Been Pwned (k-anonymity), tanpa mengirim kata sandi utuh. CLI Python berbahasa Indonesia."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Hafizd Ammar", email = "hafizdammar@gmail.com" }]
+
+[project.scripts]
+cekbocor = "cekbocor.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["cekbocor*"]
