@@ -71,11 +71,13 @@ def verdict(jumlah):
         return (
             "PERNAH BOCOR",
             "Pernah muncul 1 kali di kebocoran data. Segera ganti, "
-            "terutama kalau kata sandi ini dipakai di layanan lain juga.",
+            "terutama kalau kata sandi ini dipakai di layanan lain juga. "
+            "Jalankan `cekbocor panduan` untuk langkah-langkah selanjutnya.",
         )
     return (
         "PERNAH BOCOR",
         f"Pernah muncul {jumlah:,} kali di kebocoran data. Ganti segera "
         "dengan kata sandi baru yang unik, dan nyalakan verifikasi dua "
-        "langkah di layanan pentingmu.",
+        "langkah di layanan pentingmu. "
+        "Jalankan `cekbocor panduan` untuk langkah-langkah selanjutnya.",
     )

@@ -6,6 +6,7 @@ import json
 import sys
 
 from . import __version__
+from .panduan import PANDUAN
 from .pwned import CekBocorError, cek_sandi, verdict
 
 
@@ -41,6 +42,11 @@ def _cmd_batch(args):
         print("Ada kata sandi yang pernah bocor — jalankan "
               "`cekbocor panduan` untuk langkah selanjutnya.")
     return 0 if bocor == 0 else 1
+
+
+def _cmd_panduan(args):
+    print(PANDUAN, end="")
+    return 0
 
 
 def _cmd_sandi(args):
@@ -88,6 +94,13 @@ def build_parser():
     )
     p_batch.add_argument("berkas", help="Berkas teks berisi kata sandi")
     p_batch.set_defaults(func=_cmd_batch)
+    p_panduan = sub.add_parser(
+        "panduan",
+        help="Langkah-langkah kalau kata sandimu sudah bocor",
+        description="Tampilkan langkah-langkah setelah kata sandi "
+                    "diketahui pernah bocor.",
+    )
+    p_panduan.set_defaults(func=_cmd_panduan)
     return parser
 
 
