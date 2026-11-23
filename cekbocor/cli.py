@@ -21,9 +21,12 @@ def _cmd_batch(args):
         print(f"Tidak bisa membaca berkas {args.berkas}: "
               f"{exc.strerror or exc}", file=sys.stderr)
         return 1
-    kata_sandi = [b for b in baris_list if b.strip()]
+    # Baris kosong dan baris komentar (# ...) dilewati.
+    kata_sandi = [b for b in baris_list
+                  if b.strip() and not b.strip().startswith("#")]
     if not kata_sandi:
-        print("Berkas tidak berisi kata sandi (semua baris kosong).")
+        print("Berkas tidak berisi kata sandi (semua baris kosong "
+              "atau komentar).")
         return 0
     print(f"{'No.':>3}  {'Status':<12}  Kemunculan")
     aman = bocor = 0
@@ -147,7 +150,8 @@ def build_parser():
         "batch",
         help="Cek banyak kata sandi dari berkas (satu per baris)",
         description="Baca kata sandi dari berkas teks (satu kata sandi "
-                    "per baris; baris kosong dilewati) lalu cek tiap baris "
+                    "per baris; baris kosong dan baris komentar # "
+                    "dilewati) lalu cek tiap baris "
                     "lewat HIBP. Kata sandi tidak pernah ditampilkan kembali.",
     )
     p_batch.add_argument("berkas", help="Berkas teks berisi kata sandi")
