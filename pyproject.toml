@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cekbocor"
-version = "0.1.0"
+version = "0.2.0"
 description = "Cek apakah kata sandimu pernah bocor — lewat API Have I Been Pwned (k-anonymity), tanpa mengirim kata sandi utuh. CLI Python berbahasa Indonesia."
 readme = "README.md"
 requires-python = ">=3.9"

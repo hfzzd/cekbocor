@@ -1,6 +1,6 @@
 # CekBocor
 
-Cek apakah kata sandimu pernah bocor di kebocoran data — dari terminal, berbahasa Indonesia, tanpa mengirim kata sandi utuh ke mana pun.
+Cek apakah kata sandimu pernah bocor di kebocoran data — dari terminal, berbahasa Indonesia, tanpa mengirim kata sandi utuh ke mana pun. Sekarang juga bisa cek alamat email dan melihat riwayat cekmu sendiri.
 
 ## Cara kerja (privasi dulu)
 
@@ -11,7 +11,11 @@ CekBocor memakai [Have I Been Pwned — Pwned Passwords](https://haveibeenpwned.
 3. Server mengembalikan daftar ratusan hash yang cocok dengan 5 karakter itu — kata sandimu **tidak pernah** terkirim utuh, dan tidak bisa ditebak dari 5 karakter itu.
 4. Pencocokan dilakukan lokal: kalau hash lengkapmu ada di daftar, berarti kata sandi itu pernah muncul di kebocoran data.
 
-Tidak ada akun, tidak ada data yang disimpan, tidak ada pelacakan. Butuh internet — pemeriksaan dilakukan ke `api.pwnedpasswords.com`.
+Tidak ada akun dan tidak ada pelacakan. Butuh internet — pemeriksaan kata sandi ke `api.pwnedpasswords.com`, pemeriksaan email ke `haveibeenpwned.com`.
+
+**Perbedaan penting antara cek kata sandi dan cek email:** kata sandi tidak pernah keluar dari komputermu (hanya 5 karakter hash), tapi alamat email **memang dikirim ke HIBP** untuk dicek — tidak ada cara k-anonymity untuk email. Jadi perintah `email` hanya dipakai kalau kamu memang mau alamat emailmu dicek ke HIBP, dan perintah itu butuh API key HIBP berbayar (lihat di bawah).
+
+**Riwayat cek** tersimpan lokal di komputermu (`~/.config/cekbocor/riwayat.json`, bisa dipindah lewat variabel lingkungan `CEKBOCOR_DATA` — lihat bagian riwayat). Yang dicatat hanya hasil ceknya; kata sandi **tidak pernah disimpan**, dalam bentuk apa pun.
 
 ## Cara pakai
 
@@ -72,7 +76,7 @@ Ringkasan: 3 dicek, 2 aman, 1 pernah bocor.
 Ada kata sandi yang pernah bocor — jalankan `cekbocor panduan` untuk langkah selanjutnya.
 ```
 
-Berkas batch berisi satu kata sandi contoh per baris (baris kosong dilewati). Kata sandi **tidak pernah ditampilkan kembali** di keluaran — hanya status dan jumlah kemunculan. Berkas contoh di `contoh/contoh-batch.txt` berisi 3 kata sandi contoh; jangan taruh kata sandi aslimu di berkas contoh.
+Berkas batch berisi satu kata sandi contoh per baris (baris kosong dan baris komentar `#` dilewati). Kata sandi **tidak pernah ditampilkan kembali** di keluaran — hanya status dan jumlah kemunculan. Berkas contoh di `contoh/contoh-batch.txt` berisi 3 kata sandi contoh; jangan taruh kata sandi aslimu di berkas contoh.
 
 ### Contoh: sudah bocor, lalu apa?
 
@@ -102,22 +106,85 @@ Intinya: ganti yang bocor, jangan dipakai ulang, dan kunci akun
 pentingmu dengan verifikasi dua langkah.
 ```
 
+### Contoh: cek alamat email
+
+Perintah `email` memakai BreachedAccount API v3 HIBP dan **butuh API key HIBP** (berbayar, dibeli sendiri di <https://haveibeenpwned.com/API/Key>). Isi key lewat variabel lingkungan `HIBP_API_KEY`. Tanpa key, CekBocor menjelaskan cara mendapatkannya — bukan error misterius:
+
+```bash
+$ cekbocor email saya@email.com
+Cek email butuh API key Have I Been Pwned (HIBP_API_KEY belum diisi).
+API key ini berbayar dan dibeli sendiri di https://haveibeenpwned.com/API/Key — kami tidak pernah membeli atau meminta API key siapa pun.
+Setelah punya key, jalankan: HIBP_API_KEY=<key-mu> cekbocor email alamat@email.com
+Catatan privasi: alamat emailmu dikirim ke HIBP untuk dicek, berbeda dengan cek kata sandi yang tidak pernah mengirim kata sandi utuh.
+```
+
+Alamat yang tidak valid ditolak dengan ramah:
+
+```bash
+$ cekbocor email bukan-email
+Alamat email tidak valid.
+```
+
+Dengan key yang salah, HIBP menolaknya (401) dan CekBocor meneruskan pesannya:
+
+```bash
+$ HIBP_API_KEY=kunci-contoh cekbocor email saya@email.com
+API key HIBP ditolak (401). Periksa lagi HIBP_API_KEY-mu.
+```
+
+Dengan key valid, perintahnya:
+
+```bash
+HIBP_API_KEY=<key-mu> cekbocor email saya@email.com
+```
+
+Kalau email ditemukan, CekBocor menampilkan jumlah breach dan satu baris per breach — nama breach, tanggal breach, dan kelas data yang bocor — lalu mengingatkan untuk mengganti kata sandi di layanan itu dan menyalakan verifikasi dua langkah. Kalau tidak ditemukan, tampil `saya@email.com tidak ditemukan di breach yang diketahui HIBP.` Dengan `--json`, keluarannya daftar breach mentah dari HIBP (JSON).
+
+> **Catatan jujur:** perintah `email` belum pernah diuji langsung dengan API key valid — key-nya berbayar dan tidak dibeli di sini. Yang teruji: jalur permintaannya jalan (dengan kunci contoh, HIBP menjawab 401 "kunci ditolak" — jadi servernya terjangkau dan penolakan key-nya ditangani dengan benar), dan semua perilaku `email` lainnya teruji lewat unit test. Uji langsung dengan API key valid menunggu laptop Hafizd + API key-nya sendiri.
+
+### Contoh: riwayat cek lokal
+
+Setiap cek `sandi`, `batch`, dan `email` otomatis tercatat di riwayat lokal. Yang dicatat hanya hasil ceknya — kata sandi tidak pernah disimpan. Contoh setelah satu cek `sandi` (`password`, PERNAH BOCOR) dan satu `batch` contoh:
+
+```bash
+$ cekbocor riwayat
+Riwayat cek (lokal, kata sandi tidak pernah disimpan):
+  2026-11-23 06:15:10  [sandi] PERNAH BOCOR, 52,373,976 kemunculan
+  2026-11-23 06:15:21  [batch] contoh/contoh-batch.txt: 3 dicek, 2 aman, 1 pernah bocor
+```
+
+(Waktu di atas dalam UTC; contoh ini dari verifikasi di mesin pengembangan.)
+
+Riwayat tersimpan di `~/.config/cekbocor/riwayat.json`. Untuk test atau pemindahan, atur variabel lingkungan `CEKBOCOR_DATA` ke direktori lain — berkasnya tetap bernama `riwayat.json` di direktori itu. Hapus seluruh riwayat kapan saja:
+
+```bash
+$ cekbocor riwayat --hapus
+Riwayat cek lokal dihapus.
+
+$ cekbocor riwayat
+Belum ada riwayat cek. Cek kata sandi, batch, atau email dulu — hasilnya tercatat otomatis di sini.
+```
+
 ## Perintah
 
 | Perintah | Fungsi |
 | --- | --- |
 | `sandi` | Cek satu kata sandi lewat HIBP (ketikan tersembunyi) |
 | `sandi --json` | Sama, keluaran JSON |
-| `batch BERKAS` | Cek banyak kata sandi dari berkas (satu per baris) |
+| `batch BERKAS` | Cek banyak kata sandi dari berkas (satu per baris; baris kosong dan `#` dilewati) |
+| `email ALAMAT` | Cek alamat email di breach HIBP (butuh `HIBP_API_KEY`) |
+| `email ALAMAT --json` | Sama, keluaran JSON (daftar breach mentah) |
+| `riwayat` | Lihat riwayat cek lokal (kata sandi tidak pernah disimpan) |
+| `riwayat --hapus` | Hapus seluruh riwayat lokal |
 | `panduan` | Langkah-langkah kalau kata sandimu sudah bocor |
-| `--version` | Tampilkan versi CekBocor (0.1.0) |
+| `--version` | Tampilkan versi CekBocor (0.2.0) |
 
 Kode keluar: `0` kalau aman, `1` kalau ada yang pernah bocor atau ada kesalahan input/jaringan.
 
 ## Rencana
 
 - [x] Day-1: cek kata sandi (HIBP k-anonymity) + CLI dasar (`sandi`, `batch`, `panduan`) + 30 unit test
-- [ ] Day-2: cek email (butuh API key HIBP, opsional) + riwayat cek lokal
+- [x] Day-2: cek email (butuh API key HIBP, berbayar) + riwayat cek lokal + perbaikan batch lewati baris komentar `#`
 
 ## Menjalankan test
 
@@ -125,7 +192,7 @@ Kode keluar: `0` kalau aman, `1` kalau ada yang pernah bocor atau ada kesalahan 
 python3 -m unittest discover -s tests
 ```
 
-30 test (15 `test_pwned.py` + 15 `test_cli.py`), semua lolos. Test `pwned` memakai fetcher palsu (tanpa jaringan); test CLI end-to-end via subprocess memakai API HIBP asli dengan kata sandi contoh saja.
+76 test (15 `test_pwned.py` + 30 `test_cli.py` + 18 `test_breach.py` + 13 `test_riwayat.py`), semua lolos. Test memakai fetcher palsu / `urlopen` yang dipalsukan (tanpa jaringan) untuk jalur HIBP; test CLI end-to-end via subprocess memakai API HIBP asli dengan kata sandi contoh saja, plus `email` dengan kunci contoh (HIBP menjawab 401).
 
 ## Lisensi
 

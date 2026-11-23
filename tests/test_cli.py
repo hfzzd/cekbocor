@@ -91,7 +91,7 @@ class TestSandi(unittest.TestCase):
     def test_version(self):
         hasil = _jalankan("--version")
         self.assertEqual(hasil.returncode, 0)
-        self.assertIn("CekBocor 0.1.0", hasil.stdout)
+        self.assertIn("CekBocor 0.2.0", hasil.stdout)
 
 
 class TestBatch(unittest.TestCase):
